@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teacher Dashboard</title>
+</head>
+<body>
+    <h1>Teacher Management</h1>
+
+    <h2>Add Teacher</h2>
+    <form id="teacherForm">
+        ID: <input type="number" id="id"><br>
+        Name: <input type="text" id="name"><br>
+        Subject: <input type="text" id="subject"><br>
+        <button type="submit">Add Teacher</button>
+    </form>
+
+    <h2>All Teachers</h2>
+    <button onclick="fetchTeachers()">Refresh List</button>
+    <ul id="teacherList"></ul>
+
+    <script>
+        const apiBase = "http://127.0.0.1:8000";
+
+        // Add teacher
+        document.getElementById("teacherForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById("id").value);
+            const name = document.getElementById("name").value;
+            const subject = document.getElementById("subject").value;
+
+            const response = await fetch(`${apiBase}/teacher`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({id, name, subject})
+            });
+            const data = await response.json();
+            alert(JSON.stringify(data));
+            fetchTeachers(); // Refresh list
+        });
+
+        // Fetch all teachers
+        async function fetchTeachers() {
+            const response = await fetch(`${apiBase}/teachers`);
+            const teachers = await response.json();
+            const list = document.getElementById("teacherList");
+            list.innerHTML = "";
+
+            teachers.forEach(t => {
+                const li = document.createElement("li");
+                li.textContent = `ID: ${t.id}, Name: ${t.name}, Subject: ${t.subject} `;
+
+                // Add Delete button
+                const delBtn = document.createElement("button");
+                delBtn.textContent = "Delete";
+                delBtn.style.marginLeft = "10px";
+                delBtn.onclick = () => deleteTeacher(t.id);
+
+                li.appendChild(delBtn);
+                list.appendChild(li);
+            });
+        }
+
+        // Delete teacher
+        async function deleteTeacher(id) {
+            const confirmDelete = confirm(`Are you sure you want to delete teacher with ID ${id}?`);
+            if (!confirmDelete) return;
+
+            const response = await fetch(`${apiBase}/dteacher/${id}`, {
+                method: "DELETE"
+            });
+            const data = await response.json();
+            alert(JSON.stringify(data));
+            fetchTeachers(); // Refresh list
+        }
+
+        // Initial fetch
+        fetchTeachers();
+    </script>
+</body>
+</html>
