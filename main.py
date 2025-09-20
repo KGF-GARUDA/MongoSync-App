@@ -37,7 +37,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="admin/login")
 # -------------------------------
 # DATABASE
 # -------------------------------
-uri = "mongodb+srv://kanishksingh026_db_user:Kanishk%40123@cluster-0.rqszap9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-0"
+uri = ""
 client = MongoClient(uri, server_api=ServerApi('1'))
 
 db = client["AdminDB"]
@@ -102,7 +102,7 @@ def create_user(user: User):
 
     result = User_Collection.insert_one(user.dict())
     return {
-        "message": "Teacher added successfully",
+        "message": "User added successfully",
         "inserted_id": str(result.inserted_id),
         "user": user
     }

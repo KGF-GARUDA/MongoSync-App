@@ -1,80 +1,242 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Teacher Dashboard</title>
+  <title>FASTAPI Dashboard (PWA)</title>
+  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    body,h1 {font-family: "Raleway", Arial, sans-serif}
+    h1 {letter-spacing: 6px}
+    .w3-row-padding img {margin-bottom: 12px}
+    .section { display: none; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; table-layout: auto; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; word-wrap: break-word; }
+    th { background-color: #f2f2f2; }
+    button { padding: 5px 10px; cursor: pointer; }
+    #notification { display:none; position:fixed; top:10px; right:10px; padding:10px; color:white; border-radius:4px; z-index:1000;}
+  </style>
 </head>
 <body>
-    <h1>Teacher Management</h1>
 
-    <h2>Add Teacher</h2>
-    <form id="teacherForm">
-        ID: <input type="number" id="id"><br>
-        Name: <input type="text" id="name"><br>
-        Subject: <input type="text" id="subject"><br>
-        <button type="submit">Add Teacher</button>
+<div class="w3-content" style="max-width:1500px">
+  <header class="w3-panel w3-center w3-opacity" style="padding:128px 16px">
+    <h1 class="w3-xlarge">DEVELOPER</h1>
+    <h1>KANISHK SINGH</h1>
+    <div class="w3-padding-32">
+      <div class="w3-bar w3-border">
+        <a href="javascript:void(0)" class="w3-bar-item w3-button" onclick="resetHome()">Home</a>
+        <a href="javascript:void(0)" class="w3-bar-item w3-button w3-light-grey" onclick="showVisitor()">Visitor</a>
+        <a href="javascript:void(0)" class="w3-bar-item w3-button" onclick="showRegistration()">Registration</a>
+        <a href="javascript:void(0)" class="w3-bar-item w3-button w3-hide-small" onclick="goToContact()">Contact</a>
+      </div>
+    </div>
+  </header>
+</div>
+
+<div id="notification"></div>
+
+<!-- Registration Section -->
+<div id="teacherSection" class="w3-container w3-card w3-light-grey section">
+  <div class="w3-panel w3-center w3-opacity">
+    <h2 class="w3-xlarge"><strong>Register Now</strong></h2>
+    <form id="userForm" style="max-width:400px; margin:auto;">
+      <p><label class="w3-large">ID</label><input type="number" id="id" style="margin-left: 40px"></p>
+      <p><label class="w3-large">Name</label><input type="text" id="name" style="margin-left: 10px"></p>
+      <p><label class="w3-large">Phone</label><input type="number" id="phone" style="margin-left: 10px"></p>
+      <p><button class="w3-panel w3-large" type="submit">Register</button></p>
     </form>
+  </div>
 
-    <h2>All Teachers</h2>
-    <button onclick="fetchTeachers()">Refresh List</button>
-    <ul id="teacherList"></ul>
+  <h2 class="w3-panel w3-center w3-opacity w3-xlarge"><strong>Registered Users</strong></h2>
 
-    <script>
-        const apiBase = "http://127.0.0.1:8000";
+  <div class="w3-center" style="margin-bottom:10px;">
+    <button class="w3-panel w3-opacity w3-large" onclick="fetchTeachers()">Refresh List</button>
+    <button class="w3-panel w3-opacity w3-large" onclick="bulkDeleteRedirect()">Delete Selected</button>
+  </div>
 
-        // Add teacher
-        document.getElementById("teacherForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const id = parseInt(document.getElementById("id").value);
-            const name = document.getElementById("name").value;
-            const subject = document.getElementById("subject").value;
+  <div style="overflow-x:auto;">
+    <table>
+      <thead></thead>
+      <tbody id="teacherTableBody"></tbody>
+    </table>
+  </div>
+</div>
 
-            const response = await fetch(`${apiBase}/teacher`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({id, name, subject})
-            });
-            const data = await response.json();
-            alert(JSON.stringify(data));
-            fetchTeachers(); // Refresh list
+<!-- Visitor Section -->
+<div id="visitorSection" class="w3-container w3-card w3-light-grey section">
+  <h2 class="w3-panel w3-center w3-opacity w3-xlarge"><strong>Registered Users</strong></h2>
+  <div class="w3-center" style="margin-bottom:10px;">
+    <button class="w3-panel w3-opacity w3-large" onclick="fetchTeachers(true)">Refresh List</button>
+  </div>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead></thead>
+      <tbody id="visitorTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<footer id="footerSection" class="w3-container w3-padding-64 w3-light-grey w3-center w3-large">
+  <i class="fa fa-facebook-official w3-hover-opacity"></i>
+  <i class="fa fa-instagram w3-hover-opacity"></i>
+  <i class="fa fa-snapchat w3-hover-opacity"></i>
+  <i class="fa fa-pinterest-p w3-hover-opacity"></i>
+  <i class="fa fa-twitter w3-hover-opacity"></i>
+  <i class="fa fa-linkedin w3-hover-opacity"></i>
+  <p>Developed by <a href="#" class="w3-hover-text-green">Kanishk Singh</a></p>
+</footer>
+
+<script>
+const apiBase = "http://127.0.0.1:8000";
+
+// Notification
+function showNotification(msg, isError=false){
+    const notif = document.getElementById("notification");
+    notif.style.background = isError ? "#f44336" : "#4CAF50";
+    notif.innerText = msg;
+    notif.style.display = "block";
+    setTimeout(()=>notif.style.display="none",3000);
+}
+
+// Navigation
+function resetHome() {
+    document.getElementById("teacherSection").style.display = "none";
+    document.getElementById("visitorSection").style.display = "none";
+    window.scrollTo({top: 0, behavior: "smooth"});
+}
+function goToContact() { document.getElementById("footerSection").scrollIntoView({behavior:"smooth"}); }
+function showRegistration() { document.getElementById("teacherSection").style.display="block"; document.getElementById("visitorSection").style.display="none"; fetchTeachers(); }
+function showVisitor() { document.getElementById("teacherSection").style.display="none"; document.getElementById("visitorSection").style.display="block"; fetchTeachers(true); }
+
+// Add user
+document.getElementById("userForm").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const id = parseInt(document.getElementById("id").value);
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    if(!id || !name || !phone){ showNotification("All fields are required!", true); return; }
+    try{
+        await fetch(`${apiBase}/user`,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({id,name,phone})
         });
-
-        // Fetch all teachers
-        async function fetchTeachers() {
-            const response = await fetch(`${apiBase}/teachers`);
-            const teachers = await response.json();
-            const list = document.getElementById("teacherList");
-            list.innerHTML = "";
-
-            teachers.forEach(t => {
-                const li = document.createElement("li");
-                li.textContent = `ID: ${t.id}, Name: ${t.name}, Subject: ${t.subject} `;
-
-                // Add Delete button
-                const delBtn = document.createElement("button");
-                delBtn.textContent = "Delete";
-                delBtn.style.marginLeft = "10px";
-                delBtn.onclick = () => deleteTeacher(t.id);
-
-                li.appendChild(delBtn);
-                list.appendChild(li);
-            });
-        }
-
-        // Delete teacher
-        async function deleteTeacher(id) {
-            const confirmDelete = confirm(`Are you sure you want to delete teacher with ID ${id}?`);
-            if (!confirmDelete) return;
-
-            const response = await fetch(`${apiBase}/dteacher/${id}`, {
-                method: "DELETE"
-            });
-            const data = await response.json();
-            alert(JSON.stringify(data));
-            fetchTeachers(); // Refresh list
-        }
-
-        // Initial fetch
+        showNotification("✅ User created successfully");
         fetchTeachers();
-    </script>
+        document.getElementById("userForm").reset();
+    }catch(err){
+        showNotification("⚠️ Offline mode: Cannot add user now.", true);
+    }
+});
+
+// Fetch Users
+async function fetchTeachers(visitor=false){
+    const tableBodyId = visitor ? "visitorTableBody" : "teacherTableBody";
+
+    if(!navigator.onLine){
+        // User is offline
+        document.getElementById(tableBodyId).innerHTML=`<tr><td colspan="10" style="text-align:center">No data available</td></tr>`;
+        showNotification("⚠️ You are offline. Cannot fetch data.", true);
+        return;
+    }
+
+    // User is online
+    try{
+        const response = await fetch(`${apiBase}/users`);
+        const users = await response.json();
+        users.sort((a,b)=>a.id-b.id);
+        if(users.length){
+            renderUsers(users, visitor);
+        } else {
+            document.getElementById(tableBodyId).innerHTML=`<tr><td colspan="10" style="text-align:center">No data available</td></tr>`;
+        }
+    }catch(err){
+        document.getElementById(tableBodyId).innerHTML=`<tr><td colspan="10" style="text-align:center">No data available</td></tr>`;
+        showNotification("⚠️ Failed to fetch data from server.", true);
+    }
+}
+
+function renderUsers(users, visitor=false) {
+    const tbody = visitor ? document.getElementById("visitorTableBody") : document.getElementById("teacherTableBody");
+    tbody.innerHTML = "";
+    const table = tbody.closest("table");
+    const thead = table.querySelector("thead");
+    thead.innerHTML = "";
+
+    if (!users.length) {
+        // No data available
+        const noDataRow = document.createElement("tr");
+        const noDataTd = document.createElement("td");
+        noDataTd.colSpan = 10; // Adjust based on max expected columns
+        noDataTd.style.textAlign = "center";
+        noDataTd.innerText = "No data available";
+        noDataRow.appendChild(noDataTd);
+        tbody.appendChild(noDataRow);
+        return;
+    }
+
+    const keys = Object.keys(users[0]).filter(k => k !== "_id");
+    if (!visitor) keys.unshift("Select"); // Checkbox column
+
+    // Header
+    const headerRow = document.createElement("tr");
+    keys.forEach((k, i) => {
+        const th = document.createElement("th");
+        th.innerText = i === 0 && k === "Select" ? "" : k.charAt(0).toUpperCase() + k.slice(1);
+
+        if (i === 0 && k === "Select") { // Select All
+            const selectAll = document.createElement("input");
+            selectAll.type = "checkbox";
+            selectAll.onclick = function() {
+                tbody.querySelectorAll(".delete-checkbox").forEach(cb => cb.checked = this.checked);
+            };
+            th.appendChild(selectAll);
+            th.insertBefore(document.createTextNode(" Select All   "), th.firstChild); // Label text
+        }
+
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+
+    // Rows
+    users.forEach(u => {
+        const row = document.createElement("tr");
+        keys.forEach(k => {
+            const td = document.createElement("td");
+            if (k === "Select") {
+                const cb = document.createElement("input");
+                cb.type = "checkbox";
+                cb.className = "delete-checkbox";
+                cb.value = u.id;
+                td.appendChild(cb);
+            } else td.innerText = u[k] || "";
+            row.appendChild(td);
+        });
+        tbody.appendChild(row);
+    });
+}
+
+
+// Redirect to admin login for bulk delete
+function bulkDeleteRedirect(){
+    const selected = Array.from(document.querySelectorAll(".delete-checkbox:checked")).map(cb=>cb.value);
+    if(selected.length===0){ showNotification("No user selected!", true); return; }
+    localStorage.setItem("deleteUserIds", JSON.stringify(selected));
+    window.location.href = "admin-login.html";
+}
+
+// Service Worker
+if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("service-worker.js").then(()=>console.log("✅ SW Registered"))
+    .catch(err=>console.error("SW registration failed:", err));
+}
+
+// Show Registration on page load
+window.addEventListener("DOMContentLoaded", ()=>{ showRegistration(); });
+</script>
 </body>
 </html>
