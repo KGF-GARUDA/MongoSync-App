@@ -35,7 +35,7 @@ Project Structure
 Installation & Setup<br>
   Backend (FastAPI + MongoDB):<br>
     Clone the repo:<br>
-    git clone https://github.com/your-username/MongoSync-App.git<br>
+    git clone  https://github.com/KGF-GARUDA/MongoSync-App.git<br>
     
     cd MongoSync-App/backend
     
